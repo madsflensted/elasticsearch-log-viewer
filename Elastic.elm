@@ -284,12 +284,12 @@ flattenNestedKV nested =
     flattenKV "" [] nested
 
 
-decodeKVList : Decode.Decoder baseType -> Decode.Decoder (List ( String, baseType ))
+decodeKVList : Decoder baseType -> Decoder (List ( String, baseType ))
 decodeKVList baseDecoder =
     Decode.field "properties" (Decode.keyValuePairs baseDecoder)
 
 
-decodeNestedKV : Decode.Decoder baseType -> Decode.Decoder (NestedKV baseType)
+decodeNestedKV : Decoder baseType -> Decoder (NestedKV baseType)
 decodeNestedKV baseDecoder =
     let
         self =
@@ -310,18 +310,21 @@ decodeEsType =
 
 decodeFields : Decoder (NestedKV EsType)
 decodeFields =
-    let
-        decodeKeys =
+    Decode.field "mappings" <|
+        decodeFieldIgnoreKey (Nested []) <|
             decodeNestedKV decodeEsType
-    in
-    Decode.at [ "mappings", "doc" ] decodeKeys
 
 
 decodeIndices : Decoder (NestedKV EsType)
 decodeIndices =
-    Decode.keyValuePairs decodeFields
+    decodeFieldIgnoreKey (Nested []) decodeFields
+
+
+decodeFieldIgnoreKey : a -> Decoder a -> Decoder a
+decodeFieldIgnoreKey default decoder =
+    Decode.keyValuePairs decoder
         |> Decode.map
             (List.head
-                >> Maybe.withDefault ( "", Nested [] )
+                >> Maybe.withDefault ( "", default )
                 >> Tuple.second
             )
