@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-all: elm.js
+all: elm-stuff/exact-dependencies.json elm.js
 
 elm.js : *.elm elm-stuff/exact-dependencies.json
 	@echo "======================== NEW BUILD ========================"

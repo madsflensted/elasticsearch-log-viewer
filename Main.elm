@@ -95,8 +95,8 @@ sessionFromJson json =
 sessionToJson : Settings -> String
 sessionToJson settings =
     let
-        maxResults =
-            case settings.esMaxResults of
+        getValid member =
+            case settings |> member of
                 Valid nmbr ->
                     nmbr
 
@@ -108,7 +108,8 @@ sessionToJson settings =
           , Encode.object
                 [ ( "esBaseUrl", Encode.string settings.esBaseUrl )
                 , ( "esIndexPattern", Encode.string settings.esIndexPattern )
-                , ( "esMaxResults", Encode.int maxResults )
+                , ( "esMaxResults", Encode.int <| getValid .esMaxResults )
+                , ( "maxLinesToKeep", Encode.int <| getValid .maxLinesToKeep )
                 , ( "refreshInterval", Encode.float (intervalToSeconds settings.refreshInterval) )
                 , ( "selectedField", Encode.string settings.selectedField )
                 , ( "selectedTerms", Encode.list (List.map Encode.string settings.selectedTerms) )
